@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: todo_user
+      POSTGRES_PASSWORD: todo_pass
+      POSTGRES_DB: todo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  peer1:
+    build: .
+    container_name: peer1
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DB_HOST=db
+      - DB_USER=todo_user
+      - DB_PASSWORD=todo_pass
+      - DB_NAME=todo_db
+    depends_on:
+      - redis
+      - db
+    stdin_open: true
+    tty: true
+
+  peer2:
+    build: .
+    container_name: peer2
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DB_HOST=db
+      - DB_USER=todo_user
+      - DB_PASSWORD=todo_pass
+      - DB_NAME=todo_db
+    depends_on:
+      - redis
+      - db
+    stdin_open: true
+    tty: true
+
+volumes:
+  pgdata:
